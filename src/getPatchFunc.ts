@@ -15,8 +15,8 @@ import type {
 // creates a hook if needed, else just adds one to the patches array
 export default <T extends PatchType>(patchType: T) =>
 	<Name extends KeysWithFunctionValues<Parent>, Parent extends AnyObject>(
-		funcName: Name,
 		funcParent: Parent,
+		funcName: Name,
 		callback: PatchTypeToCallbackMap<Parent[Name]>[T],
 		oneTime = false,
 	) => {
