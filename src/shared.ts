@@ -1,9 +1,11 @@
 export type PatchType = "a" | "b" | "i";
 
-export type PatchTypeToCallbackMap<F extends AnyFunction> = {
-  a: (args: Parameters<F>, ret: ReturnType<F>) => ReturnType<F>;
-  b: (args: Parameters<F>) => Parameters<F> | void | undefined;
-  i: (args: Parameters<F>, origFunc: F) => ReturnType<F>;
+type SafeParameters<T> = T extends (...args: infer P) => any ? P : any[];
+
+export type PatchTypeToCallbackMap<F extends Function> = {
+  a: (args: SafeParameters<F>, ret: ReturnType<F>) => ReturnType<F> | void | undefined;
+  b: (args: SafeParameters<F>) => SafeParameters<F> | void | undefined;
+  i: (args: SafeParameters<F>, origFunc: F) => ReturnType<F>;
 }
 
 // we use this array multiple times
@@ -13,24 +15,22 @@ export type Patch = {
 	// cleanups
 	c: Function[];
 	// after hooks
-	a: Map<symbol, AnyFunction>;
+	a: Map<symbol, Function>;
 	// before hooks
-	b: Map<symbol, AnyFunction>;
+	b: Map<symbol, Function>;
 	// instead hooks
-	i: Map<symbol, AnyFunction>;
+	i: Map<symbol, Function>;
 };
 
-export type AnyFunction = (...args: any[]) => any;
-
 export type KeysWithFunctionValues<T extends AnyObject> = {
-	[K in Extract<keyof T, string>]: T[K] extends AnyFunction ? K : never;
+	[K in Extract<keyof T, string>]: T[K] extends Function ? K : never;
 }[Extract<keyof T, string>];
 
 export type AnyObject = Record<any, any>;
 
-export let patchedFunctions: WeakMap<AnyFunction, Patch>;
+export let patchedFunctions: WeakMap<Function, Patch>;
 export let resetPatches = () =>
-	(patchedFunctions = new WeakMap<AnyFunction, Patch>());
+	(patchedFunctions = new WeakMap<Function, Patch>());
 
 // Manual minification is funny
 resetPatches();
